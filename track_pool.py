@@ -148,7 +148,7 @@ class Track:
         self.length_m = int(self.length / 60) % 60
         self.length_s = int(self.length) % 60
 
-        self.length_string = str(self.length_h) + ':' + str(self.length_m) + ':' + str(self.length_s)
+        self.length_string = str(self.length_h).zfill(2) + ':' + str(self.length_m).zfill(2) + ':' + str(self.length_s).zfill(2)
 
         self.genre      = (audio['genre']  if genre==None       else genre)
         self.song_title = (audio['title']  if song_title==None  else song_title)

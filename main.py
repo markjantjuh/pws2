@@ -7,6 +7,8 @@ import pickle
 from track_pool import *
 import tkFileDialog
 
+def banaan():
+    print('cola')
 
 class MusicApplication(Frame):
     def __init__(self, master):
@@ -25,6 +27,8 @@ class MusicApplication(Frame):
         Frame.__init__(frame)
         frame.pack()
 
+        self.player_window = None
+
         #set up music files and libraries
         self.track_pool = TrackPool()
         self.track_pool.clean_track_pool()
@@ -32,6 +36,8 @@ class MusicApplication(Frame):
         self.current_tracklist = CurrentTracklist()
         self.current_tracklist.reset()
 
+        self.queueBox_count = IntVar()
+        self.current_tracklist_count = IntVar()
 
         #listbox tracklist
         self.tracklistListBox = Treeview(master)
@@ -45,7 +51,11 @@ class MusicApplication(Frame):
         self.tracklistListBox.heading("length", text="Length")
         self.tracklistListBox.height = 3
         self.tracklistListBox.pack()
+        Label(master, textvariable=self.current_tracklist_count).pack()
         self.update_tracklistbox()
+
+        self.tracklistListBox_scrollbar = Scrollbar(master, orient='vertical', command=self.tracklistListBox.yview)
+        self.tracklistListBox_scrollbar.pack()
 
         #edit track toolbar
         self.edit_tagsButton = Button(frame, text="Edit tags")
@@ -55,27 +65,14 @@ class MusicApplication(Frame):
         #initialize player
         tkSnack.initializeSnack(master)
         self.soundObject = tkSnack.Sound()
-        self.queueBox = Treeview(master)
-        self.queueBox['columns'] = ('songtitle', 'length')
-        self.queueBox.heading('#0', text='', anchor='w')
-        self.queueBox.column("#0", anchor="w")
-        self.queueBox.heading("songtitle", text="Track")
-        self.queueBox.heading("length", text="Length")
-        self.queueBox.pack()
-
-        #play button
-        self.playButton = Button(frame, text="Play")
-        self.playButton.bind("<Button-1>", self.playSound)
-        self.playButton.pack(side=LEFT)
-
-        #stop button
-        self.stopButton = Button(frame, text="Stop")
-        self.stopButton.bind("<Button-1>", self.stopSound)
-        self.stopButton.pack(side=LEFT)
 
         self.add_to_queue_button = Button(frame, text="Add selected to queue")
         self.add_to_queue_button.bind("<Button-1>", self.add_to_queue)
         self.add_to_queue_button.pack(side=LEFT)
+
+        self.add_everything_to_queue = Button(frame, text="Add everything to queue")
+        self.add_everything_to_queue.bind("<Button-1>", self.add_to_queue)
+        self.add_everything_to_queue.pack()
 
         self.add_to_playlist_button = Button(frame, text='add to playlist')
         self.add_to_playlist_button.bind("<Button-1>", self.add_to_playlist)
@@ -88,11 +85,6 @@ class MusicApplication(Frame):
         self.remove_tracks_from_playlist_button = Button(frame, text="Remove selected tracks from playlist")
         self.remove_tracks_from_playlist_button.bind("<Button-1>", self.remove_from_playlist)
         self.remove_tracks_from_playlist_button.pack()
-
-        #pause button
-        self.pauseButton = Button(frame, text="Pause")
-        self.pauseButton.bind("<Button-1>", self.pauseSound)
-        self.pauseButton.pack(side=LEFT)
 
         #menu widget
         self.menu = Menu(master)
@@ -122,9 +114,7 @@ class MusicApplication(Frame):
         self.menu.add_cascade(label="Playlists", menu=self.playlistsMenu)
         self.playlistsMenu.add_command(label="Add playlist", command=self.create_playlist_window)
 
-        #songprogress bar
-        self.songprogressBar = Scale(master, from_=0, to=128, command=None)
-        self.songprogressBar.pack()
+        Button(master, text='open player', command=self.player_window_go).pack()
 
         #playlists listbox
         self.playlistsBox = Treeview(master)
@@ -137,7 +127,75 @@ class MusicApplication(Frame):
         self.update_tracklistbox()
         self.update_playlistbox()
 
+        self.playlistsBox_scrollbar = Scrollbar(master, orient='vertical', command=self.playlistsBox.yview)
+        self.playlistsBox_scrollbar.pack()
+
+        self.queue = []
+
         self.playlistsBox.bind('<<TreeviewSelect>>', self.playlist_selection_change)
+
+    def player_window_go(self):
+        if self.player_window is None:
+            self.count += 1
+            id = "New window #%s" % self.count
+            self.player_window = Toplevel(root)
+
+            self.player_window.protocol("WM_DELETE_WINDOW", self.player_window_onclose)
+
+            self.queueBox = Treeview(self.player_window)
+            self.queueBox['columns'] = ('songtitle', 'length')
+            self.queueBox.heading('#0', text='', anchor='w')
+            self.queueBox.column("#0", anchor="w")
+            self.queueBox.heading("songtitle", text="Track")
+            self.queueBox.heading("length", text="Length")
+            self.queueBox.pack()
+
+            self.queueBox_scrollbar = Scrollbar(self.player_window, orient='vertical', command=self.queueBox.yview)
+            self.queueBox_scrollbar.pack()
+            self.queuebox_update_count()
+            Label(self.player_window, textvariable=self.queueBox_count).pack()
+
+            #play button
+            self.playButton = Button(self.player_window, text="Play")
+            self.playButton.bind("<Button-1>", self.playSound)
+            self.playButton.pack(side=LEFT)
+
+            #stop button
+            self.stopButton = Button(self.player_window, text="Stop")
+            self.stopButton.bind("<Button-1>", self.stopSound)
+            self.stopButton.pack(side=LEFT)
+
+            #pause button
+            self.pauseButton = Button(self.player_window, text="Pause")
+            self.pauseButton.bind("<Button-1>", self.pauseSound)
+            self.pauseButton.pack(side=LEFT)
+
+            self.songprogressBar = Scale(self.player_window, from_=0, to=128, command=None)
+            self.songprogressBar.pack()
+
+            self.volumeBar = Scale(self.player_window, from_=0, to=100, orient=VERTICAL, command=self.update_volume)
+            self.volumeBar.set(50)
+            self.volumeBar.pack()
+            self.volume = StringVar()
+            Label(self.player_window, textvariable=self.volume).pack()
+            self.volume.set(str(int(tkSnack.audio.play_gain())) + "%")
+
+            self.nextButton = Button(self.player_window, text="Next")
+            self.nextButton.bind("<Button-1>", self.play_next_from_queue)
+            self.nextButton.pack()
+
+            self.time_elapsed = StringVar()
+            Label(self.player_window, textvariable=self.time_elapsed).pack()
+
+            self.update_time_elapsed()
+
+    def queuebox_update_count(self):
+        self.queueBox_count.set(len(self.queueBox.get_children()))
+
+    def player_window_onclose(self):
+        self.player_window.destroy()
+        self.player_window = None
+
 
     def playlist_selection_change(self, event=None):
         selected_playlists = self.playlistsBox.selection()
@@ -150,10 +208,53 @@ class MusicApplication(Frame):
 
         self.update_tracklistbox()
 
+    def update_time_elapsed(self):
+        q = int(tkSnack.audio.elapsedTime())
+
+        p = self.soundObject.length(unit="SECONDS")
+
+        length_song_h = int(p / 3600)
+        length_song_m = int(p / 60) % 60
+        length_song_s = int(p) % 60
+
+        length_song_string = str(length_song_h).zfill(2) + ':' + str(length_song_m).zfill(2) + ':' + str(length_song_s).zfill(2)
+
+        length_elapsed_h = int(q / 3600)
+        length_elapsed_m = int(q / 60) % 60
+        length_elapsed_s = int(q) % 60
+
+        length_elapsed_string = str(length_elapsed_h).zfill(2) + ':' + str(length_elapsed_m).zfill(2) + ':' + str(length_elapsed_s).zfill(2)
+
+        total_string = length_elapsed_string + "/" + length_song_string
+
+        self.time_elapsed.set(total_string)
+
+
+
+        if self.soundObject.length() != 0:
+            self.time_elapsed_percentage = (tkSnack.audio.elapsedTime() / self.soundObject.length(unit="SECONDS"))* 100
+            self.songprogressBar.set(self.time_elapsed_percentage)
+
+        root.after(100, self.update_time_elapsed)
+
+    def play_next_from_queue(self, event=None):
+        print("SONGETJE IS KLAAR")
+        self.stopSound()
+        self.remove_from_queue()
+        if self.queue:
+            self.playSound()
+        else:
+            print('queuue is empty')
+
+
     def playlist_to_current_tracklist(self, playlist):
         self.current_tracklist.list = []
         for p in playlist.tracks:
             self.current_tracklist.list.append(p)
+
+    def update_volume(self, event=None):
+        tkSnack.audio.play_gain(int(self.volumeBar.get()))
+        self.volume.set(str(int(tkSnack.audio.play_gain())) + "%")
 
 
     def show_full_library(self, event=None):
@@ -161,15 +262,37 @@ class MusicApplication(Frame):
         self.update_tracklistbox()
 
     def add_to_queue(self, event=None):
-        selected_tracks = self.tracklistListBox.selection()
+        self.player_window_go()
+
+        if event.widget == self.add_everything_to_queue:
+            selected_tracks = self.tracklistListBox.get_children()
+        else:
+            selected_tracks = self.tracklistListBox.selection()
+
         for i in selected_tracks:
             print i
             t = self.track_pool.get_track_by_id(i)
 
             if t:
-                self.queueBox.insert("", "end", t.id, values=(t.song_title, 0))  # t.length)
+                self.queue.append(t)
             else:
                 print 'no track selected'
+
+        for q in self.queue:
+            self.queueBox.insert("", "end", q.id, values=(self.track_pool.remove_pickle_crap(q.song_title), q.length_string))  # t.length)
+
+        self.queuebox_update_count()
+
+    def remove_from_queue(self, event=None):
+        for i in self.queueBox.get_children():
+            self.queueBox.delete(i)
+
+        del self.queue[0]
+
+        for q in self.queue:
+            self.queueBox.insert("", "end", q.id, values=(self.track_pool.remove_pickle_crap(q.song_title), q.length_string))  # t.length)
+
+
 
     def select_library_locations_window(self, event=None):
         self.count += 1
@@ -188,14 +311,38 @@ class MusicApplication(Frame):
         self.track_pool.load_dir(directory)
         self.track_pool.update_track_pool()
         self.current_tracklist.list = self.track_pool.track_pool_list
+        self.track_pool.update_track_pool()
+        self.current_tracklist.reset()
         self.update_tracklistbox()
         self.window.destroy()
 
+    def print_val(self, event=None):
+        print('ALLAHU AKBAAAAAR')
+
     def playSound(self, event=None):
-        p = self.queueBox.selection()
-        t = self.track_pool.get_track_by_id(p[0])
-        self.soundObject.load(t.path)
-        self.soundObject.play()
+        t = self.queue[0]
+        print t.path
+        self.start_value = 0
+        self.end_value = -1
+        self.soundObject.read(t.path)
+        self.soundObject.play(start=self.start_value, end=self.end_value, command=self.askdirectory)
+        self.check_end_song()
+        print(self.soundObject.info())
+
+    def check_end_song(self):
+        elapsed_time = tkSnack.audio.elapsedTime() + (self.start_value / self.soundObject.info()[1])
+
+        if self.end_value == -1:
+            length = self.soundObject.length(unit="SECONDS")
+        else:
+            length = self.end_value / self.soundObject.info()[1]
+
+        if elapsed_time >= length:
+            print('takbir')
+            self.soundObject.stop()
+            self.play_next_from_queue()
+
+        root.after(50, self.check_end_song)
 
     def stopSound(self, event=None):
         self.soundObject.stop()
@@ -258,6 +405,8 @@ class MusicApplication(Frame):
                                                  self.track_pool.remove_pickle_crap(i.genre),
                                                  self.track_pool.remove_pickle_crap(i.length_string)
                                                  ))
+
+        self.current_tracklist_count.set(len(self.tracklistListBox.get_children()))
 
     def update_playlistbox(self):
         for i in self.playlistsBox.get_children():
@@ -342,3 +491,4 @@ root = Tk()
 app = MusicApplication(root)
 
 root.mainloop()
+
