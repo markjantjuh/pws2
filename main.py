@@ -247,6 +247,8 @@ class MusicApplication(Frame):
                command=lambda: self.update_tags(t, genre_entry.get(), song_title_entry.get(), artist_entry.get(),
                                                 album_entry.get(), edit_mp3_tags.get())).pack()
 
+        Button(self.tag_window, text='reset tags', command=t.reset_tags)
+
         #function that lets you select the locations to get tracks from
 
     def select_library_locations_window(self, event=None):

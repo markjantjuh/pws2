@@ -187,6 +187,13 @@ class Track:
     def setup_wav(self, path,genre, song_title, artist, album, year, bpm, key):
         pass
 
+    def reset_tags(self):
+        audio = MP3(self.path, ID3=EasyID3)
+        self.genre      = audio['genre']
+        self.song_title = audio['title']
+        self.artist     = audio['artist']
+        self.album      = audio['album']
+
     def edit_tags(self, genre, song_title, artist, album):
         self.genre = genre
         self.song_title = song_title
@@ -196,10 +203,10 @@ class Track:
     def edit_mp3_tags(self):
         audio = MP3(self.path, ID3=EasyID3)
 
-        audio['genre'] = self.genre
-        audio['title'] = self.song_title
-        audio['artist'] = self.artist
-        audio['album'] = self.album
+        audio['genre'] = unicode(self.genre)
+        audio['title'] = unicode(self.song_title)
+        audio['artist'] = unicode(self.artist)
+        audio['album'] = unicode(self.album)
         audio.save()
 
 class CurrentTracklist:
