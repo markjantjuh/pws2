@@ -71,6 +71,14 @@ class MusicApplication(Frame):
         self.edit_tagsButton.bind("<Button-1>", self.edit_tags_window) #bind button to function edit_tags_window()
         self.edit_tagsButton.pack()
 
+        self.hide_tracks_from_pool = Button(root, text="hide selection")
+        self.hide_tracks_from_pool.bind("<Button-1>", self.hide_selected_tracks)
+        self.hide_tracks_from_pool.pack()
+
+        self.reset_hidden = Button(root, text="reset hidden")
+        self.reset_hidden.bind("<Button-1>", self.reset_hidden_tracks)
+        self.reset_hidden.pack()
+
         #create button to open player window
         Button(root, text='open player', command=self.player_window_go).pack()
 
@@ -98,6 +106,10 @@ class MusicApplication(Frame):
         self.remove_tracks_from_playlist_button = Button(root, text="Remove selected tracks from playlist") #create Tkinter Button
         self.remove_tracks_from_playlist_button.bind("<Button-1>", self.remove_from_playlist) #bind button to remove_from_playlist function
         self.remove_tracks_from_playlist_button.pack()
+
+        self.remove_playlist_button = Button(root, text="Remove selected playlist") #create Tkinter Button
+        self.remove_playlist_button.bind("<Button-1>", self.remove_playlist)
+        self.remove_playlist_button.pack()
 
         #options for the tkFileDialog
         self.dir_opt = options = {}
@@ -224,10 +236,16 @@ class MusicApplication(Frame):
         album_entry.insert(0, self.track_pool.remove_pickle_crap(t.album))
         album_entry.pack()
 
+        edit_mp3_tags = IntVar()
+        edit_mp3_tags_label = Label(self.tag_window, text="Edit tags within file (MP3 Only)")
+        edit_mp3_tags_label.pack()
+        edit_mp3_tags_checkbox = Checkbutton(self.tag_window, variable=edit_mp3_tags)
+        edit_mp3_tags_checkbox.pack()
+
         #create button that sends all the user submitted information to update_tags function
         Button(self.tag_window, text='save stuff',
                command=lambda: self.update_tags(t, genre_entry.get(), song_title_entry.get(), artist_entry.get(),
-                                                album_entry.get())).pack()
+                                                album_entry.get(), edit_mp3_tags.get())).pack()
 
         #function that lets you select the locations to get tracks from
 
@@ -273,13 +291,16 @@ class MusicApplication(Frame):
             self.tracklistListBox.delete(i)
 
         #insert all tracks from the current_tracklist into the trackpool
+        self.track_pool.update_track_pool()
         for i in self.current_tracklist.list:
-            self.tracklistListBox.insert("", "end", i.id,
-                                         values=(self.track_pool.remove_pickle_crap(i.song_title),
-                                                 self.track_pool.remove_pickle_crap(i.artist),
-                                                 self.track_pool.remove_pickle_crap(i.album),
-                                                 self.track_pool.remove_pickle_crap(i.genre),
-                                                 self.track_pool.remove_pickle_crap(i.length_string)
+            q = self.track_pool.get_track_by_id(i.id)
+            if q.hidden == False:
+                self.tracklistListBox.insert("", "end", q.id,
+                                         values=(self.track_pool.remove_pickle_crap(q.song_title),
+                                                 self.track_pool.remove_pickle_crap(q.artist),
+                                                 self.track_pool.remove_pickle_crap(q.album),
+                                                 self.track_pool.remove_pickle_crap(q.genre),
+                                                 self.track_pool.remove_pickle_crap(q.length_string)
                                                  ))
 
         #update the counter
@@ -398,6 +419,11 @@ class MusicApplication(Frame):
             self.nextButton.bind("<Button-1>", self.play_next_from_queue) #button binded to play_next_from_queue function
             self.nextButton.pack()
 
+            #create button to remove selection from queue
+            self.remove_from_queue_button = Button(self.player_window, text="Remove selected from queue")
+            self.remove_from_queue_button.bind("<Button-1>", self.remove_selection_from_queue)
+            self.remove_from_queue_button.pack()
+
             #create time_elapsed string variable
             self.time_elapsed = StringVar()
             Label(self.player_window, textvariable=self.time_elapsed).pack() #bind timeelapsed to label
@@ -458,12 +484,33 @@ class MusicApplication(Frame):
         self.update_tracklistbox()
 
     #function that updates the tags from a specified track
-    def update_tags(self, trackobj, genre, song_title, artist, album):
+    def update_tags(self, trackobj, genre, song_title, artist, album, edit_mp3):
         trackobj.edit_tags(genre, song_title, artist, album) #edit the tags on the trackobject
+
+        if edit_mp3 == 1:
+            trackobj.edit_mp3_tags()
+
         self.track_pool.update_track_pool() #update the trackpool
         self.current_tracklist.update() #update the current tracklist
         self.update_tracklistbox() #update the track_listbox with the updated current_tracklist
         self.tag_window.destroy() #destroy the update_tags window
+
+    def hide_selected_tracks(self, event=None):
+        selection = self.tracklistListBox.selection()
+        for i in selection:
+            p = self.track_pool.get_track_by_id(i)
+            p.hidden = True
+
+        self.track_pool.update_track_pool()
+        self.update_tracklistbox()
+
+    def reset_hidden_tracks(self, event=None):
+        for i in self.track_pool.track_pool_list:
+            i.hidden = False
+
+        self.track_pool.update_track_pool()
+        self.current_tracklist.reset()
+        self.update_tracklistbox()
 
     '''QUEUE FUNCTIONS'''
     #function that adds selected tracks to the queueBox
@@ -487,25 +534,35 @@ class MusicApplication(Frame):
                 print 'no track selected'
 
         #insert all queue items into the queuebox
-        for q in self.queue:
-            self.queueBox.insert("", "end", q.id, values=(self.track_pool.remove_pickle_crap(q.song_title), q.length_string))  # t.length)
+        self.update_queuebox()
 
         #update queuebox counter
         self.queuebox_update_count()
 
         #remove selected items from queue
 
-    def remove_from_queue(self, event=None):
+    def update_queuebox(self, event=None):
         #remove all items in the queueBox
         for i in self.queueBox.get_children():
             self.queueBox.delete(i)
 
-        #remove first item in the queue
-        del self.queue[0]
-
         #insert all queue items into queueBox
         for q in self.queue:
             self.queueBox.insert("", "end", q.id, values=(self.track_pool.remove_pickle_crap(q.song_title), q.length_string))  # t.length)
+
+    def remove_from_queue(self, event=None):
+        #remove first item in the queue
+        del self.queue[0]
+        self.update_queuebox()
+
+    def remove_selection_from_queue(self, event=None):
+        selection = self.queueBox.selection()
+        for i in selection:
+            p = self.track_pool.get_track_by_id(i)
+            self.queue.remove(p)
+
+        self.update_queuebox()
+        self.queuebox_update_count()
 
     #function that removes first song, takes next song and calls play() on that next song
     def play_next_from_queue(self, event=None):
@@ -571,6 +628,16 @@ class MusicApplication(Frame):
         self.current_tracklist.list = [] #empty current_tracklist
         for p in playlist.tracks: #for every track in playlist
             self.current_tracklist.list.append(p) #add track to current_tracklist
+
+    def remove_playlist(self, event=None):
+        p = self.playlistsBox.selection()
+        x = self.track_pool.get_playlist_by_id(p[0])
+        self.track_pool.playlists_list.remove(x)
+
+        self.track_pool.update_playlists()
+        self.current_tracklist.reset()
+        self.update_playlistbox()
+        self.update_tracklistbox()
 
     '''PLAYER FUNCTIONS'''
     def initialize_player(self):

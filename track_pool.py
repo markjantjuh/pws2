@@ -160,6 +160,8 @@ class Track:
         p = uuid.uuid4()
         self.id = int(p)
 
+        self.hidden = False
+
         print self.path
         if self.path.endswith('.mp3'): self.setup_mp3(self.path, genre, song_title, artist, album, year, bpm, key)
         if self.path.endswith('.wav'): self.setup_wav(self.path, genre, song_title, artist, album, year, bpm, key)
@@ -190,6 +192,15 @@ class Track:
         self.song_title = song_title
         self.artist = artist
         self.album = album
+
+    def edit_mp3_tags(self):
+        audio = MP3(self.path, ID3=EasyID3)
+
+        audio['genre'] = self.genre
+        audio['title'] = self.song_title
+        audio['artist'] = self.artist
+        audio['album'] = self.album
+        audio.save()
 
 class CurrentTracklist:
     def __init__(self):
