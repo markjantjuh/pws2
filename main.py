@@ -115,7 +115,7 @@ class MusicApplication(Frame):
             tv.move(k, '', index)
 
         # reverse sort next time
-        tv.heading(col, command=lambda: self.Treeview_sort(tv, col, not reverse))
+        tv.heading(col, command=lambda: self.treeview_sort(tv, col, not reverse))
 
     def main_menu(self):
         #creating menu widget
