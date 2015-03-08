@@ -649,6 +649,7 @@ class MusicApplication(Frame):
 
     #function that plays the sound
     def playSound(self, event=None):
+        self.soundObject.stop()
         t = self.queue[0] #take first item from the queue
 
         #specify starting and ending point of the sound to be played
