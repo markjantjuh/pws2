@@ -218,7 +218,7 @@ class MusicApplication(Frame):
 
         #create input information for artist
         #artist_label
-        artist_label = Label(self.tag_window, text='Song Title')
+        artist_label = Label(self.tag_window, text='Artist')
         artist_label.pack()
 
         #artist entry
@@ -228,7 +228,7 @@ class MusicApplication(Frame):
 
         #create input information for album
         #album label
-        album_label = Label(self.tag_window, text='Song Title')
+        album_label = Label(self.tag_window, text='Album')
         album_label.pack()
 
         #album entry
@@ -293,7 +293,7 @@ class MusicApplication(Frame):
             self.tracklistListBox.delete(i)
 
         #insert all tracks from the current_tracklist into the trackpool
-        self.track_pool.update_track_pool()
+        self.track_pool.refresh_trackpool()
         for i in self.current_tracklist.list:
             q = self.track_pool.get_track_by_id(i.id)
             if q.hidden == False:
@@ -304,6 +304,7 @@ class MusicApplication(Frame):
                                                  self.track_pool.remove_pickle_crap(q.genre),
                                                  self.track_pool.remove_pickle_crap(q.length_string)
                                                  ))
+
 
         #update the counter
         self.current_tracklist_count.set(len(self.tracklistListBox.get_children()))
@@ -489,7 +490,7 @@ class MusicApplication(Frame):
     def update_tags(self, trackobj, genre, song_title, artist, album, edit_mp3):
         trackobj.edit_tags(genre, song_title, artist, album) #edit the tags on the trackobject
 
-        if edit_mp3 == 1:
+        if edit_mp3 == 1 and trackobj.path.endswith('.mp3'):
             trackobj.edit_mp3_tags()
 
         self.track_pool.update_track_pool() #update the trackpool

@@ -6,6 +6,8 @@ import os.path
 import uuid
 import random
 import re
+import wave
+import contextlib
 
 #class that defines a trackpool object linked to the musicapplication, contains list of loaded tracks, playlists and options for handling the current session
 class TrackPool:
@@ -185,7 +187,22 @@ class Track:
         self.album      = (audio['album']  if album==None       else album)
 
     def setup_wav(self, path,genre, song_title, artist, album, year, bpm, key):
-        pass
+        self.genre      = ('-'  if genre==None       else genre)
+        self.song_title = (os.path.splitext(os.path.basename(path))[0]  if song_title==None  else song_title)
+        self.artist     = ('-' if artist==None      else artist)
+        self.album      = ('-'  if album==None       else album)
+
+        with contextlib.closing(wave.open(path,'r')) as f:
+            frames = f.getnframes()
+            rate = f.getframerate()
+            self.length = frames / float(rate)
+
+        self.length_h = int(self.length / 3600)
+        self.length_m = int(self.length / 60) % 60
+        self.length_s = int(self.length) % 60
+
+        self.length_string = str(self.length_h).zfill(2) + ':' + str(self.length_m).zfill(2) + ':' + str(self.length_s).zfill(2)
+
 
     def reset_tags(self):
         audio = MP3(self.path, ID3=EasyID3)
