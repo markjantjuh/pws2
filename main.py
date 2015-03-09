@@ -17,6 +17,8 @@ class MusicApplication(Frame):
         Frame.__init__(frame)
         frame.pack()
 
+        self.parent=root
+
         #making reference to window dedicated to player
         self.player_window = None
 
@@ -47,16 +49,13 @@ class MusicApplication(Frame):
 
     '''UI FUNCTIONS'''
     def main_window(self):
-        #set up frames
-        self.main_window_topframe = Frame(root)
-        self.main_window_bottomframe = Frame(root)
-
-        # * * * * * * * * * * * * * TOP FRAME * * * * * * * * * * *
-        self.main_window_topframe.rowconfigure(0, weight=1)
-        self.main_window_topframe.columnconfigure(0, weight=1)
+        #adding a scrollbar to current_tracklist Listbox
+        self.tracklistListBox_scrollbar = Scrollbar(root, orient='vertical') #tkinter Scrollbar
+        self.tracklistListBox_scrollbar.pack()
 
         #listbox current tracklist
-        self.tracklistListBox = Treeview(self.main_window_topframe) #ttk Treeview
+        self.tracklistListBox = Treeview(root, yscrollcommand=self.tracklistListBox_scrollbar.set) #ttk Treeview
+        self.tracklistListBox_scrollbar.config(command=self.tracklistListBox.yview)
         self.tracklistListBox['columns'] = ('songtitle', 'artist', 'album', 'genre', 'length') #define Treeview columns
         self.tracklistListBox.heading("#0", text='', anchor='w')
         self.tracklistListBox.column("#0", anchor="w")
@@ -66,14 +65,10 @@ class MusicApplication(Frame):
             self.tracklistListBox.heading(col, text=col, command=lambda col_=col: self.treeview_sort(self.tracklistListBox, col_, False))
         #placing tracklistBox UI-elements on the UI
 
-        self.tracklistListBox.grid(row=0, column=0, sticky=N+S+E+W) #placing traclistBox
-
-        #adding a scrollbar to current_tracklist Listbox
-        self.tracklistListBox_scrollbar = Scrollbar(root, orient='vertical', command=self.tracklistListBox.yview) #tkinter Scrollbar
-        self.tracklistListBox_scrollbar.pack()
+        self.tracklistListBox.pack() #placing traclistBox
 
         #placing label connected to current_tracklist_count
-        Label(self.main_window_topframe, textvariable=self.current_tracklist_count).grid(row=0, column=2)
+        Label(root, textvariable=self.current_tracklist_count).pack()
 
         #edit tags_button
         self.edit_tagsButton = Button(root, text="Edit tags") #tkinter Button
@@ -94,22 +89,22 @@ class MusicApplication(Frame):
         #button to add selected tracks to queue
         self.add_to_queue_button = Button(root, text="Add selected to queue") #create Tkinter Button
         self.add_to_queue_button.bind("<Button-1>", self.add_to_queue) #bind button to add_to_queue function
-        self.add_to_queue_button.pack(side=LEFT)
+        self.add_to_queue_button.pack()
 
         #button to add every track in current_tracklist to queue
         self.add_everything_to_queue = Button(root, text="Add everything to queue") #create Tkinter Button
         self.add_everything_to_queue.bind("<Button-1>", self.add_to_queue) #bind button to add_to_queue function
         self.add_everything_to_queue.pack()
 
+           #button to 'reset' the current_tracklist_and listbox
+        self.full_library_button = Button(root, text='show full library') #create Tkinter Button
+        self.full_library_button.bind("<Button-1>", self.show_full_library) #bind button to show_full_library function
+        self.full_library_button.pack()
+
         #button to add selected tracks to playlist
         self.add_to_playlist_button = Button(root, text='add to playlist') #create Tkinter Button
         self.add_to_playlist_button.bind("<Button-1>", self.add_to_playlist) #bind button to add_to_playlist function
         self.add_to_playlist_button.pack()
-
-        #button to 'reset' the current_tracklist_and listbox
-        self.full_library_button = Button(root, text='show full library') #create Tkinter Button
-        self.full_library_button.bind("<Button-1>", self.show_full_library) #bind button to show_full_library function
-        self.full_library_button.pack()
 
         #button to remove selected tracks from selected playlist
         self.remove_tracks_from_playlist_button = Button(root, text="Remove selected tracks from playlist") #create Tkinter Button
