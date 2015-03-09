@@ -42,6 +42,7 @@ class MusicApplication(Frame):
         #execute UI functions
         self.main_window()
         self.main_menu()
+        self.init_resources()
 
         #initialize player object
         self.initialize_player()
@@ -49,6 +50,14 @@ class MusicApplication(Frame):
         #fill all listboxes with info
         self.update_tracklistbox()
         self.update_playlistbox()
+
+    def init_resources(self):
+        self.icon_play = PhotoImage(file="res/play.gif")
+        self.icon_next = PhotoImage(file="res/next.gif")
+        self.icon_pause = PhotoImage(file="res/pause.gif")
+        self.icon_shuffle = PhotoImage(file="res/shuffle.gif")
+        self.icon_stop = PhotoImage(file="res/stop.gif")
+        self.icon_remove = PhotoImage(file="res/remove.gif")
 
     '''UI FUNCTIONS'''
     def main_window(self):
@@ -466,45 +475,45 @@ class MusicApplication(Frame):
             self.volume.set(str(int(tkSnack.audio.play_gain())) + "%") #set volumetext
 
             #play button on player_window
-            self.playButton = Button(self.player_window_bottomframe, text="Play") #create button on player_window
+            self.playButton = Button(self.player_window_bottomframe, image=self.icon_play, text="Play", compound=RIGHT) #create button on player_window
             self.playButton.bind("<Button-1>", self.playSound) #bind button to playSound function
-            self.playButton.grid(row=0, column=1, sticky=N+E)
+            self.playButton.grid(row=0, column=1, sticky=N+E, padx=(20,20), pady=(10,10))
 
             #stop button on player_window
-            self.stopButton = Button(self.player_window_bottomframe, text="Stop") #create button on player_window
+            self.stopButton = Button(self.player_window_bottomframe, image=self.icon_stop, text="Stop", compound=RIGHT) #create button on player_window
             self.stopButton.bind("<Button-1>", self.stopSound) #bind button to stopSound function
-            self.stopButton.grid(row=0, column=2, sticky=N+E)
+            self.stopButton.grid(row=2, column=1, sticky=N+E, padx=(20,20), pady=(10,10))
 
             #pause button on player_window
-            self.pauseButton = Button(self.player_window_bottomframe, text="Pause") #create button on player_Window
+            self.pauseButton = Button(self.player_window_bottomframe, image=self.icon_pause, text="Pause", compound=RIGHT) #create button on player_Window
             self.pauseButton.bind("<Button-1>", self.pauseSound) #bind button to pauseSound function
-            self.pauseButton.grid(row=1, column=1, sticky=N+E)
+            self.pauseButton.grid(row=1, column=1, sticky=N+E, padx=(20,20), pady=(10,10))
 
             #create button to go to next song from queue
-            self.nextButton = Button(self.player_window_bottomframe, text="Next") #tkinter Button
+            self.nextButton = Button(self.player_window_bottomframe, image=self.icon_next, text="Next", compound=RIGHT) #tkinter Button
             self.nextButton.bind("<Button-1>", self.play_next_from_queue) #button binded to play_next_from_queue function
-            self.nextButton.grid(row=2, column=1, sticky=N+E)
+            self.nextButton.grid(row=0, column=2, sticky=N+E, padx=(20,20), pady=(10,10))
 
-            self.shuffleButton = Button(self.player_window_bottomframe, text="Shuffle")
+            self.shuffleButton = Button(self.player_window_bottomframe, image=self.icon_shuffle, text="Shuffle", compound=RIGHT)
             self.shuffleButton.bind("<Button-1>", self.shuffle_queue)
-            self.shuffleButton.grid(row=2, column=2, sticky=N+E)
+            self.shuffleButton.grid(row=2, column=2, sticky=N+E, padx=(20,20), pady=(10,10))
 
             #update counter, amount of tracks in queue
             self.queuebox_update_count()
-            Label(self.player_window_bottomframe, textvariable=self.queueBox_count).grid(row=0, column=3, sticky=N+S) #link counter to label (self-updating)
+            Label(self.player_window_bottomframe, textvariable=self.queueBox_count).grid(row=1, column=3, sticky=N+S, padx=(20,20), pady=(10,10)) #link counter to label (self-updating)
 
             #create button to remove selection from queue
-            self.remove_from_queue_button = Button(self.player_window_bottomframe, text="Remove selected from queue")
+            self.remove_from_queue_button = Button(self.player_window_bottomframe, image=self.icon_remove, text="Remove", compound=RIGHT)
             self.remove_from_queue_button.bind("<Button-1>", self.remove_selection_from_queue)
-            self.remove_from_queue_button.grid(row=1, column=3, sticky=N+S+E+W)
+            self.remove_from_queue_button.grid(row=1, column=2, sticky=N+E, padx=(20,20), pady=(10,10))
 
             #add a bar to track the progress of the song
             self.songprogressBar = Scale(self.player_window_bottomframe, from_=0, to=128, command=None) #tkinter Scale
-            self.songprogressBar.grid(row=0, column=4, sticky=N+S+E+W)
+            self.songprogressBar.grid(row=0, column=3, columnspan=2, sticky=N+S+E+W, padx=(20,20), pady=(10,10))
 
             #create time_elapsed string variable
             self.time_elapsed = StringVar()
-            Label(self.player_window_bottomframe, textvariable=self.time_elapsed).grid(row=1, column=4, sticky=E+W) #bind timeelapsed to label
+            Label(self.player_window_bottomframe, textvariable=self.time_elapsed).grid(row=1, column=4, sticky=E+W, padx=(20,20), pady=(10,10)) #bind timeelapsed to label
 
             #start loop of updating the time that elapsed after first song
             self.update_time_elapsed()
