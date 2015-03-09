@@ -40,9 +40,10 @@ class MusicApplication(Frame):
         self.current_tracklist_count = IntVar() #amount of tracks in the current tracklist
 
         #execute UI functions
+        self.init_resources()
         self.main_window()
         self.main_menu()
-        self.init_resources()
+
 
         #initialize player object
         self.initialize_player()
@@ -58,6 +59,11 @@ class MusicApplication(Frame):
         self.icon_shuffle = PhotoImage(file="res/shuffle.gif")
         self.icon_stop = PhotoImage(file="res/stop.gif")
         self.icon_remove = PhotoImage(file="res/remove.gif")
+        self.icon_add = PhotoImage(file="res/add.gif")
+        self.icon_hide = PhotoImage(file="res/hide.gif")
+        self.icon_reset = PhotoImage(file="res/reset.gif")
+        self.icon_show = PhotoImage(file="res/show.gif")
+        self.icon_tag = PhotoImage(file="res/tag.gif")
 
     '''UI FUNCTIONS'''
     def main_window(self):
@@ -99,33 +105,33 @@ class MusicApplication(Frame):
         Label(self.main_window_topframe, textvariable=self.current_tracklist_count).grid(row=0, column=2)
 
         #edit tags_button
-        self.edit_tagsButton = Button(self.main_window_topframe, text="Edit tags") #tkinter Button
+        self.edit_tagsButton = Button(self.main_window_topframe, text="Edit tags", image=self.icon_tag, compound=RIGHT) #tkinter Button
         self.edit_tagsButton.bind("<Button-1>", self.edit_tags_window) #bind button to function edit_tags_window()
         self.edit_tagsButton.grid(row=1, column=2, sticky=E+W, padx=(10,10))
 
-        self.hide_tracks_from_pool = Button(self.main_window_topframe, text="Hide selected tracks from trackpool")
+        self.hide_tracks_from_pool = Button(self.main_window_topframe, text="Hide selected tracks from trackpool", image=self.icon_hide, compound=RIGHT)
         self.hide_tracks_from_pool.bind("<Button-1>", self.hide_selected_tracks)
         self.hide_tracks_from_pool.grid(row=2, column=2, sticky=E+W, padx=(10,10))
 
-        self.reset_hidden = Button(self.main_window_topframe, text="Reset hidden tracks")
+        self.reset_hidden = Button(self.main_window_topframe, text="Reset hidden tracks", image=self.icon_reset, compound=RIGHT)
         self.reset_hidden.bind("<Button-1>", self.reset_hidden_tracks)
         self.reset_hidden.grid(row=3, column=2, sticky=E+W, padx=(10,10))
 
         #create button to open player window
-        Button(self.main_window_topframe, text='Open Player Window', command=self.player_window_go).grid(row=4, column=2, sticky=E+W, padx=(10,10))
+        Button(self.main_window_topframe, text='Open Player Window', command=self.player_window_go, image=self.icon_show, compound=RIGHT).grid(row=4, column=2, sticky=E+W, padx=(10,10))
 
         #button to add selected tracks to queue
-        self.add_to_queue_button = Button(self.main_window_topframe, text="Add selected to queue") #create Tkinter Button
+        self.add_to_queue_button = Button(self.main_window_topframe, text="Add selected to queue", image=self.icon_add, compound=RIGHT) #create Tkinter Button
         self.add_to_queue_button.bind("<Button-1>", self.add_to_queue) #bind button to add_to_queue function
         self.add_to_queue_button.grid(row=5, column=2, sticky=E+W, padx=(10,10))
 
         #button to add every track in current_tracklist to queue
-        self.add_everything_to_queue = Button(self.main_window_topframe, text="Add everything to queue") #create Tkinter Button
+        self.add_everything_to_queue = Button(self.main_window_topframe, text="Add everything to queue", image=self.icon_add, compound=RIGHT) #create Tkinter Button
         self.add_everything_to_queue.bind("<Button-1>", self.add_to_queue) #bind button to add_to_queue function
         self.add_everything_to_queue.grid(row=6, column=2, sticky=E+W, padx=(10,10))
 
            #button to 'reset' the current_tracklist_and listbox
-        self.full_library_button = Button(self.main_window_topframe, text='Show all tracks') #create Tkinter Button
+        self.full_library_button = Button(self.main_window_topframe, text='Show all tracks', image=self.icon_show, compound=RIGHT) #create Tkinter Button
         self.full_library_button.bind("<Button-1>", self.show_full_library) #bind button to show_full_library function
         self.full_library_button.grid(row=7, column=2, sticky=E+W, padx=(10,10))
 
@@ -139,16 +145,16 @@ class MusicApplication(Frame):
         #playlistoptions
 
         #button to add selected tracks to playlist
-        self.add_to_playlist_button = Button(self.main_window_bottomframe, text='add to playlist') #create Tkinter Button
+        self.add_to_playlist_button = Button(self.main_window_bottomframe, text='add to playlist', image=self.icon_add, compound=RIGHT) #create Tkinter Button
         self.add_to_playlist_button.bind("<Button-1>", self.add_to_playlist) #bind button to add_to_playlist function
         self.add_to_playlist_button.grid(row=0, column=0, sticky=E+W, padx=(10,10))
 
         #button to remove selected tracks from selected playlist
-        self.remove_tracks_from_playlist_button = Button(self.main_window_bottomframe, text="Remove selected tracks from playlist") #create Tkinter Button
+        self.remove_tracks_from_playlist_button = Button(self.main_window_bottomframe, text="Remove selected tracks from playlist", image=self.icon_remove, compound=RIGHT) #create Tkinter Button
         self.remove_tracks_from_playlist_button.bind("<Button-1>", self.remove_from_playlist) #bind button to remove_from_playlist function
         self.remove_tracks_from_playlist_button.grid(row=1, column=0, sticky=E+W, padx=(10,10))
 
-        self.remove_playlist_button = Button(self.main_window_bottomframe, text="Remove selected playlist") #create Tkinter Button
+        self.remove_playlist_button = Button(self.main_window_bottomframe, text="Remove selected playlist", image=self.icon_remove, compound=RIGHT) #create Tkinter Button
         self.remove_playlist_button.bind("<Button-1>", self.remove_playlist)
         self.remove_playlist_button.grid(row=2, column=0, sticky=E+W, padx=(10,10))
 
