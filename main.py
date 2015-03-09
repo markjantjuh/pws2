@@ -47,8 +47,16 @@ class MusicApplication(Frame):
 
     '''UI FUNCTIONS'''
     def main_window(self):
+        #set up frames
+        self.main_window_topframe = Frame(root)
+        self.main_window_bottomframe = Frame(root)
+
+        # * * * * * * * * * * * * * TOP FRAME * * * * * * * * * * *
+        self.main_window_topframe.rowconfigure(0, weight=1)
+        self.main_window_topframe.columnconfigure(0, weight=1)
+
         #listbox current tracklist
-        self.tracklistListBox = Treeview(root) #ttk Treeview
+        self.tracklistListBox = Treeview(self.main_window_topframe) #ttk Treeview
         self.tracklistListBox['columns'] = ('songtitle', 'artist', 'album', 'genre', 'length') #define Treeview columns
         self.tracklistListBox.heading("#0", text='', anchor='w')
         self.tracklistListBox.column("#0", anchor="w")
@@ -57,14 +65,15 @@ class MusicApplication(Frame):
         for col in self.tracklistListBox['columns']:
             self.tracklistListBox.heading(col, text=col, command=lambda col_=col: self.treeview_sort(self.tracklistListBox, col_, False))
         #placing tracklistBox UI-elements on the UI
-        self.tracklistListBox.pack() #placing traclistBox
 
-        #placing label connected to current_tracklist_count
-        Label(root, textvariable=self.current_tracklist_count).pack()
+        self.tracklistListBox.grid(row=0, column=0, sticky=N+S+E+W) #placing traclistBox
 
         #adding a scrollbar to current_tracklist Listbox
         self.tracklistListBox_scrollbar = Scrollbar(root, orient='vertical', command=self.tracklistListBox.yview) #tkinter Scrollbar
         self.tracklistListBox_scrollbar.pack()
+
+        #placing label connected to current_tracklist_count
+        Label(self.main_window_topframe, textvariable=self.current_tracklist_count).grid(row=0, column=2)
 
         #edit tags_button
         self.edit_tagsButton = Button(root, text="Edit tags") #tkinter Button
@@ -139,7 +148,7 @@ class MusicApplication(Frame):
         self.menu.add_cascade(label="File", menu=self.fileMenu) #add cascade File
         self.fileMenu.add_command(label="File locations", command=self.select_library_locations_window) #command to select library locations
         self.fileMenu.add_separator() #seperator
-        self.fileMenu.add_command(label="Exit", command=None) #command to quit the application
+        self.fileMenu.add_command(label="Exit", command=root.quit) #command to quit the application
 
         #edit submenu
         self.editMenu = Menu(self.menu) #create Tkinter menu
@@ -191,80 +200,87 @@ class MusicApplication(Frame):
         self.count += 1
         id = "New window #%s" % self.count
         self.tag_window = Toplevel(root)
+        self.tag_window.minsize(width=640, height=150)
+
+        for i in range(5):
+            self.tag_window.rowconfigure(i, weight=1)
+
+        self.tag_window.columnconfigure(1, weight=1)
 
         #get first track from the selected tracks to edit
         selected_tracks = self.tracklistListBox.selection()
         t = self.track_pool.get_track_by_id(selected_tracks[0])
 
+        self.tag_window.title('editing: ' + self.track_pool.remove_pickle_crap(str(t.song_title)))
+
         #create input information for genre
         #genre label
         genre_label = Label(self.tag_window, text='Genre')
-        genre_label.pack()
+        genre_label.grid(row=0, column=0, sticky=N+S)
 
         #genre entry
         genre_entry = Entry(self.tag_window)
         genre_entry.insert(0, self.track_pool.remove_pickle_crap(t.genre))
-        genre_entry.pack()
+        genre_entry.grid(row=0, column=1, sticky=N+S+E+W)
 
         #create input information for song_title
         #song_title label
         song_title_label = Label(self.tag_window, text='Song Title')
-        song_title_label.pack()
+        song_title_label.grid(row=1, column=0, sticky=N+S)
 
         #song_title entry
         song_title_entry = Entry(self.tag_window)
         song_title_entry.insert(0,self.track_pool.remove_pickle_crap(t.song_title))
-        song_title_entry.pack()
+        song_title_entry.grid(row=1, column=1, sticky=N+S+E+W)
 
         #create input information for artist
         #artist_label
         artist_label = Label(self.tag_window, text='Artist')
-        artist_label.pack()
+        artist_label.grid(row=2, column=0, sticky=N+S)
 
         #artist entry
         artist_entry = Entry(self.tag_window)
         artist_entry.insert(0, self.track_pool.remove_pickle_crap(t.artist))
-        artist_entry.pack()
+        artist_entry.grid(row=2, column=1, sticky=N+S+E+W)
 
         #create input information for album
         #album label
         album_label = Label(self.tag_window, text='Album')
-        album_label.pack()
+        album_label.grid(row=3, column=0, sticky=N+S)
 
         #album entry
         album_entry = Entry(self.tag_window)
         album_entry.insert(0, self.track_pool.remove_pickle_crap(t.album))
-        album_entry.pack()
+        album_entry.grid(row=3, column=1, sticky=N+S+E+W)
 
         edit_mp3_tags = IntVar()
-        edit_mp3_tags_label = Label(self.tag_window, text="Edit tags within file (MP3 Only)")
-        edit_mp3_tags_label.pack()
-        edit_mp3_tags_checkbox = Checkbutton(self.tag_window, variable=edit_mp3_tags)
-        edit_mp3_tags_checkbox.pack()
+        edit_mp3_tags_checkbox = Checkbutton(self.tag_window, variable=edit_mp3_tags, text='Edit tags of file (MP3 Only)')
+        edit_mp3_tags_checkbox.grid(row=4, column=0, columnspan=2, sticky=N+S+E+W)
 
         #create button that sends all the user submitted information to update_tags function
-        Button(self.tag_window, text='save stuff',
+        Button(self.tag_window, text='Save tags',
                command=lambda: self.update_tags(t, genre_entry.get(), song_title_entry.get(), artist_entry.get(),
-                                                album_entry.get(), edit_mp3_tags.get())).pack()
-
-        Button(self.tag_window, text='reset tags', command=t.reset_tags)
-
-        #function that lets you select the locations to get tracks from
+                                                album_entry.get(), edit_mp3_tags.get())).grid(row=5, column=0, columnspan=2, sticky=N+S)
 
     def select_library_locations_window(self, event=None):
         self.count += 1
         id = "New window #%s" % self.count
         self.window = Toplevel(root) #create new window
-        listbox = Listbox(self.window) #create new listbox
+        self.listbox = Listbox(self.window) #create new listbox
+
+        self.window.columnconfigure(0, weight=1)
+        self.window.rowconfigure(0, weight=1)
+        self.window.minsize(width=500, height=50)
 
         #insert all existing locations in listbox
         for i in self.track_pool.locations_list:
-            listbox.insert(END, i)
+            self.listbox.insert(END, i)
 
-        listbox.pack(side=LEFT)
+        self.listbox.grid(row=0, column=0, rowspan=2, sticky=N+S+E+W)
 
         #create button to start searching
-        Button(self.window, text='askopenfile', command=self.askdirectory).pack(side=LEFT) #binded to askdir function
+        Button(self.window, text='Add Directory', command=self.askdirectory).grid(row=0, column=1, sticky=E+W) #binded to askdir function
+        Button(self.window, text='Remove Selected Directory', command=self.removedirectory).grid(row=1, column=1, sticky=E+W)
 
         #function to get a window that lets the user create a new playlist
 
@@ -272,19 +288,24 @@ class MusicApplication(Frame):
         self.count += 1
         id = "New window #%s" % self.count
         self.playlist_window = Toplevel(root)
+        self.playlist_window.title('Create new playlist')
+        self.playlist_window.minsize(width=300, height=100)
+
+        self.playlist_window.rowconfigure(0, weight=1)
+        self.playlist_window.columnconfigure(1, weight=1)
 
         #input for name of the new playlist
         #playlist_name label
         playlist_name_label = Label(self.playlist_window, text='Name')
-        playlist_name_label.pack()
+        playlist_name_label.grid(row=0, column=0, sticky=N+S)
 
         #playlist_name entry
         playlist_name_entry = Entry(self.playlist_window)
-        playlist_name_entry.pack()
+        playlist_name_entry.grid(row=0, column=1, sticky=E+W)
 
         #button that sends user submitted information to create_playlist function
         Button(self.playlist_window, text='save stuff',
-               command=lambda: self.create_playlist(playlist_name_entry.get())).pack()
+               command=lambda: self.create_playlist(playlist_name_entry.get())).grid(row=1, column=0, columnspan=2, sticky=E+W)
 
     #function that updates the contents of the tracklistbox
     def update_tracklistbox(self):
@@ -339,6 +360,11 @@ class MusicApplication(Frame):
         self.count += 1
         id = "New window #%s" % self.count
         self.add_to_playlist_window = Toplevel(root)
+        self.add_to_playlist_window.minsize(width=300, height=100)
+        self.add_to_playlist_window.title('Add selected tracks to playlist')
+
+        self.add_to_playlist_window.rowconfigure(0, weight=1)
+        self.add_to_playlist_window.columnconfigure(0, weight=1)
 
         #create listbox consisting of playlists that currently exist with the amount of items in it
         playlist_listbox = Treeview(self.add_to_playlist_window)
@@ -347,15 +373,15 @@ class MusicApplication(Frame):
         playlist_listbox.column("#0", anchor="w")
         playlist_listbox.heading("playlist", text="Playlist")
         playlist_listbox.heading("n_tracks", text="Tracks")
-        playlist_listbox.pack()
+        playlist_listbox.grid(row=0, column=0, sticky=N+S+E+W)
 
         #insert items into the newly created listbox
         for i in self.track_pool.playlists_list:
             playlist_listbox.insert("", "end", i.id, values=(i.name, len(i.tracks)))
 
         #create button that send the info to add_tracks_to_playlist
-        Button(self.add_to_playlist_window, text='save stuff',
-               command=lambda: self.add_tracks_to_playlist(playlist_listbox.selection()[0], track_selection)).pack()
+        Button(self.add_to_playlist_window, text='Add to playlist',
+               command=lambda: self.add_tracks_to_playlist(playlist_listbox.selection()[0], track_selection)).grid(row=1, column=0)
 
     '''PLAYER WINDOW UI FUNCTIONS'''
     #creation of the player window
@@ -366,70 +392,89 @@ class MusicApplication(Frame):
 
             #create new window
             self.player_window = Toplevel(root)
-
-            #bind close-event to function
             self.player_window.protocol("WM_DELETE_WINDOW", self.player_window_onclose)
+            self.player_window.columnconfigure(0, weight=1)
+            self.player_window.rowconfigure(0, weight=1)
+
+            self.player_window.title('Player')
+
+            #create frames
+            self.player_window_topframe = Frame(self.player_window)
+            self.player_window_bottomframe = Frame(self.player_window)
+
+            self.player_window_topframe.grid(row=0, sticky=N+S+E+W)
+            self.player_window_bottomframe.grid(row=1, sticky=E+W)
+
+            # * * * * * * * TOPFRAME * * * * * * *
+            self.player_window_topframe.grid_rowconfigure(0, weight=1)
+            self.player_window_topframe.grid_columnconfigure(0, weight=1)
+
+            self.queueBox_scrollbar = Scrollbar(self.player_window_topframe)
+            self.queueBox_scrollbar.grid(row=0, column=1, sticky=N+S)
 
             #create queueBox
             #queueBox contains tracks currently ready to play
-            self.queueBox = Treeview(self.player_window)
+            self.queueBox = Treeview(self.player_window_topframe, yscrollcommand=self.queueBox_scrollbar.set)
+            self.queueBox_scrollbar.config(command=self.queueBox.yview)
             self.queueBox['columns'] = ('songtitle', 'length')
             self.queueBox.heading('#0', text='', anchor='w')
             self.queueBox.column("#0", anchor="w")
             self.queueBox.heading("songtitle", text="Track")
             self.queueBox.heading("length", text="Length")
-            self.queueBox.pack()
+            self.queueBox.grid(row=0, column=0, sticky=N+S+E+W)
 
-            #add scrollbar to queueBox
-            self.queueBox_scrollbar = Scrollbar(self.player_window, orient='vertical', command=self.queueBox.yview)
-            self.queueBox_scrollbar.pack()
-
-            #update counter, amount of tracks in queue
-            self.queuebox_update_count()
-            Label(self.player_window, textvariable=self.queueBox_count).pack() #link counter to label (self-updating)
-
-            #play button on player_window
-            self.playButton = Button(self.player_window, text="Play") #create button on player_window
-            self.playButton.bind("<Button-1>", self.playSound) #bind button to playSound function
-            self.playButton.pack(side=LEFT)
-
-            #stop button on player_window
-            self.stopButton = Button(self.player_window, text="Stop") #create button on player_window
-            self.stopButton.bind("<Button-1>", self.stopSound) #bind button to stopSound function
-            self.stopButton.pack(side=LEFT)
-
-            #pause button on player_window
-            self.pauseButton = Button(self.player_window, text="Pause") #create button on player_Window
-            self.pauseButton.bind("<Button-1>", self.pauseSound) #bind button to pauseSound function
-            self.pauseButton.pack(side=LEFT)
-
-            #add a bar to track the progress of the song
-            self.songprogressBar = Scale(self.player_window, from_=0, to=128, command=None) #tkinter Scale
-            self.songprogressBar.pack()
-
+            # * * * * * * * * * BOTTOM FRAME * * * * * * * * * *
             #add a bar to be able to set the volume
-            self.volumeBar = Scale(self.player_window, from_=0, to=100, orient=VERTICAL, command=self.update_volume) #tkinter Scale
+            for x in range(2):
+                self.player_window_bottomframe.grid_rowconfigure(x, weight=1)
+            for y in range(5):
+                self.player_window_bottomframe.grid_columnconfigure(y, weight=1)
+
+            self.volumeBar = Scale(self.player_window_bottomframe, from_=0, to=100, orient=VERTICAL, command=self.update_volume) #tkinter Scale
             self.volumeBar.set(50) #set init value
-            self.volumeBar.pack()
+            self.volumeBar.grid(row=0, column=0, sticky=N+S+E+W)
 
             #volume text variable
             self.volume = StringVar()
-            Label(self.player_window, textvariable=self.volume).pack() #label binded to self.volume
+            Label(self.player_window_bottomframe, textvariable=self.volume).grid(row=1, column=0, sticky=N+S+E+W) #label binded to self.volume
             self.volume.set(str(int(tkSnack.audio.play_gain())) + "%") #set volumetext
 
+            #play button on player_window
+            self.playButton = Button(self.player_window_bottomframe, text="Play") #create button on player_window
+            self.playButton.bind("<Button-1>", self.playSound) #bind button to playSound function
+            self.playButton.grid(row=0, column=1, sticky=N+E)
+
+            #stop button on player_window
+            self.stopButton = Button(self.player_window_bottomframe, text="Stop") #create button on player_window
+            self.stopButton.bind("<Button-1>", self.stopSound) #bind button to stopSound function
+            self.stopButton.grid(row=0, column=2, sticky=N+E)
+
+            #pause button on player_window
+            self.pauseButton = Button(self.player_window_bottomframe, text="Pause") #create button on player_Window
+            self.pauseButton.bind("<Button-1>", self.pauseSound) #bind button to pauseSound function
+            self.pauseButton.grid(row=1, column=1, sticky=N+E)
+
             #create button to go to next song from queue
-            self.nextButton = Button(self.player_window, text="Next") #tkinter Button
+            self.nextButton = Button(self.player_window_bottomframe, text="Next") #tkinter Button
             self.nextButton.bind("<Button-1>", self.play_next_from_queue) #button binded to play_next_from_queue function
-            self.nextButton.pack()
+            self.nextButton.grid(row=1, column=2, sticky=N+E)
+
+            #update counter, amount of tracks in queue
+            self.queuebox_update_count()
+            Label(self.player_window_bottomframe, textvariable=self.queueBox_count).grid(row=0, column=3, sticky=N+S) #link counter to label (self-updating)
 
             #create button to remove selection from queue
-            self.remove_from_queue_button = Button(self.player_window, text="Remove selected from queue")
+            self.remove_from_queue_button = Button(self.player_window_bottomframe, text="Remove selected from queue")
             self.remove_from_queue_button.bind("<Button-1>", self.remove_selection_from_queue)
-            self.remove_from_queue_button.pack()
+            self.remove_from_queue_button.grid(row=1, column=3, sticky=N+S+E+W)
+
+            #add a bar to track the progress of the song
+            self.songprogressBar = Scale(self.player_window_bottomframe, from_=0, to=128, command=None) #tkinter Scale
+            self.songprogressBar.grid(row=0, column=4, sticky=N+S+E+W)
 
             #create time_elapsed string variable
             self.time_elapsed = StringVar()
-            Label(self.player_window, textvariable=self.time_elapsed).pack() #bind timeelapsed to label
+            Label(self.player_window_bottomframe, textvariable=self.time_elapsed).grid(row=1, column=4, sticky=E+W) #bind timeelapsed to label
 
             #start loop of updating the time that elapsed after first song
             self.update_time_elapsed()
@@ -484,6 +529,15 @@ class MusicApplication(Frame):
 
             self.current_tracklist.reset()
 
+        self.update_tracklistbox()
+
+    def removedirectory(self):
+        p = self.listbox.curselection()
+        for i in p:
+            del self.track_pool.locations_list[i]
+
+        self.track_pool.save_locations_list()
+        self.track_pool.load_dir()
         self.update_tracklistbox()
 
     #function that updates the tags from a specified track
@@ -606,6 +660,8 @@ class MusicApplication(Frame):
         self.track_pool.update_playlists() #update playlists.pkl
         self.update_playlistbox() #update playlistbox
         self.update_tracklistbox() #update tracklistbox
+
+        self.add_to_playlist_window.destroy()
     #remove selected from playlist
     def remove_from_playlist(self, event=None):
         playlist = self.playlistsBox.selection()[0] #get first selected playlist
