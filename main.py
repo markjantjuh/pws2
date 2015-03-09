@@ -20,7 +20,8 @@ class MusicApplication(Frame):
         frame.columnconfigure(0, weight=1)
 
         self.parent = master
-        self.parent.title('Music Player')
+        self.parent.title('MusicPie 1.0') #window title
+        root.iconbitmap(default='MusicPie.ico') #window icon
 
         #making reference to window dedicated to player
         self.player_window = None
@@ -145,7 +146,7 @@ class MusicApplication(Frame):
         #playlistoptions
 
         #button to add selected tracks to playlist
-        self.add_to_playlist_button = Button(self.main_window_bottomframe, text='add to playlist', image=self.icon_add, compound=RIGHT) #create Tkinter Button
+        self.add_to_playlist_button = Button(self.main_window_bottomframe, text='Add to playlist', image=self.icon_add, compound=RIGHT) #create Tkinter Button
         self.add_to_playlist_button.bind("<Button-1>", self.add_to_playlist) #bind button to add_to_playlist function
         self.add_to_playlist_button.grid(row=0, column=0, sticky=E+W, padx=(10,10))
 
