@@ -21,7 +21,7 @@ class MusicApplication(Frame):
 
         self.parent = master
         self.parent.title('MusicPie 1.0') #window title
-        root.iconbitmap(default='MusicPie.ico') #window icon
+        root.iconbitmap(default='res\MusicPie.ico') #window icon
 
         #making reference to window dedicated to player
         self.player_window = None
